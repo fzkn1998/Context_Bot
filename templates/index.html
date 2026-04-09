@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} - Document Intelligence</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+</head>
+<body data-theme="light">
+  <header class="topbar">
+    <div class="logo-wrap">
+      <div class="logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">{{ app_name }}</div>
+        <div class="logo-pill">LOCAL RAG</div>
+      </div>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <button class="status-pill" id="statusPill" type="button" title="Check model status">
+        <span class="sdot" id="statusDot"></span>
+        <span id="statusText">Checking...</span>
+      </button>
+      <button class="icon-btn" id="themeBtn" type="button" title="Toggle theme"></button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <section class="sb-section">
+        <div class="sb-label">Upload</div>
+        <label class="upzone" id="dropzone">
+          <input id="fileInput" type="file" accept=".txt,.md,.pdf,.docx">
+          <div class="up-ico">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <div class="up-title">Upload document</div>
+          <div class="up-hint">TXT, MD, PDF, DOCX</div>
+          <div class="up-bar-wrap" id="upBarWrap">
+            <div class="up-bar" id="upBar"></div>
+          </div>
+        </label>
+      </section>
+
+      <section class="sb-docs-hdr">
+        <div class="sb-label no-margin">Documents</div>
+        <span class="doc-cnt" id="docCount">0</span>
+      </section>
+
+      <section class="doc-list" id="docList"></section>
+
+      <section class="sb-footer">
+        <button class="btn btn-primary" id="reindexBtn" type="button">Rebuild Index</button>
+        <div class="idx-status" id="indexStatus"></div>
+      </section>
+    </aside>
+
+    <main class="chat-main">
+      <section class="messages" id="messagesScroll">
+        <div class="msgs-inner" id="msgsInner">
+          <div class="welcome" id="welcome">
+            <div class="wlc-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h1>Ask your documents anything</h1>
+            <p>Upload files, rebuild the knowledge index, then ask focused questions. The app retrieves relevant passages and answers from your local model.</p>
+            <div class="chips">
+              <button class="chip" type="button" data-prefill="Summarize the main points of the documents">Summarize</button>
+              <button class="chip" type="button" data-prefill="What are the key findings?">Key findings</button>
+              <button class="chip" type="button" data-prefill="List all action items or tasks mentioned">Action items</button>
+              <button class="chip" type="button" data-prefill="What documents have been uploaded?">List documents</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="input-area">
+        <div class="input-wrap">
+          <div class="input-hint"><kbd>Enter</kbd> send · <kbd>Shift+Enter</kbd> new line</div>
+          <div class="input-box">
+            <textarea id="chatInput" placeholder="Ask a question about your documents..." rows="1"></textarea>
+            <button id="sendBtn" type="button" title="Send">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+</body>
+</html>
