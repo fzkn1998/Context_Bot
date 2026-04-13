@@ -1,4 +1,4 @@
-# DeepSeek RAG Chatbot for Local Document Q&A
+# RAG Chatbot for Local Document Q&A
 
 A local document question-answering chatbot built with FastAPI, LangChain, local retrieval, and Ollama.
 
