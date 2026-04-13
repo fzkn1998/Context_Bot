@@ -22,7 +22,7 @@ This project lets you:
 ## Project Structure
 
 ```text
-deepseek_rag_chatbot/
+Context_chatbot/
 |-- app/
 |   |-- main.py          # FastAPI app and UI
 |   |-- rag.py           # document loading, indexing, retrieval, chat logic
