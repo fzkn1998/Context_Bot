@@ -12,6 +12,9 @@ PROJECT_DIR = CURRENT_DIR.parent
 STATIC_DIR = PROJECT_DIR / "static"
 TEMPLATES_DIR = PROJECT_DIR / "templates"
 
+# Load .env BEFORE importing rag so env vars are available at module level
+load_dotenv(PROJECT_DIR / ".env")
+
 for path in (CURRENT_DIR, PROJECT_DIR):
     path_str = str(path)
     if path_str not in sys.path:
@@ -23,7 +26,7 @@ try:
         SUPPORTED_EXTENSIONS,
         ask_question,
         build_vectorstore,
-        get_ollama_status,
+        get_api_status,
     )
 except ModuleNotFoundError:
     from rag import (
@@ -31,10 +34,8 @@ except ModuleNotFoundError:
         SUPPORTED_EXTENSIONS,
         ask_question,
         build_vectorstore,
-        get_ollama_status,
+        get_api_status,
     )
-
-load_dotenv()
 
 app = FastAPI(title="ContextDesk")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -52,7 +53,7 @@ def home(request: Request):
 
 @app.get("/status")
 def status():
-    return get_ollama_status()
+    return get_api_status()
 
 
 @app.get("/documents")

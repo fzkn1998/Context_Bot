@@ -156,13 +156,8 @@ async function checkStatus() {
     }
 
     dot.className = "sdot err";
-    if (data.connected) {
-      text.textContent = `Model missing · ${backend}`;
-      toast("Run: ollama pull " + data.model, "err");
-    } else {
-      text.textContent = "Ollama offline";
-      toast("Cannot reach Ollama. Is it running?", "err");
-    }
+    text.textContent = "API key missing";
+    toast("Set DEEPSEEK_API_KEY in Vercel environment variables.", "err");
   } catch (_error) {
     dot.className = "sdot err";
     text.textContent = "Connection error";

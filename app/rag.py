@@ -3,27 +3,31 @@ import pickle
 import re
 from pathlib import Path
 from typing import List, Tuple
-from urllib.parse import urlparse
 
 import docx2txt
-import numpy as np
-import requests
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+try:
+    from sentence_transformers import SentenceTransformer
+    _SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    _SENTENCE_TRANSFORMERS_AVAILABLE = False
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-VECTORSTORE_DIR = BASE_DIR / os.getenv("VECTORSTORE_DIR", "vectorstore")
+_IS_VERCEL = bool(os.getenv("VERCEL"))
+_STORAGE_BASE = Path("/tmp") if _IS_VERCEL else BASE_DIR
+VECTORSTORE_DIR = _STORAGE_BASE / os.getenv("VECTORSTORE_DIR", "vectorstore")
 INDEX_FILE = VECTORSTORE_DIR / "tfidf_index.pkl"
-DATA_DIR = BASE_DIR / os.getenv("DATA_DIR", "data")
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "deepseek-r1:7b")
-OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "ollama")
+DATA_DIR = _STORAGE_BASE / os.getenv("DATA_DIR", "data")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "Qwen/Qwen2.5-72B-Instruct")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://router.huggingface.co/v1/")
 RETRIEVAL_TOP_K = int(os.getenv("RETRIEVAL_TOP_K", "4"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
@@ -132,6 +136,8 @@ def build_vectorstore() -> Tuple[int, str]:
     texts = [build_search_text(chunk) for chunk in chunks]
 
     try:
+        if not _SENTENCE_TRANSFORMERS_AVAILABLE:
+            raise ImportError("sentence-transformers not available")
         embedder = SentenceTransformer(EMBEDDING_MODEL, local_files_only=True)
         embeddings = embedder.encode(texts, show_progress_bar=True, convert_to_numpy=True)
     except Exception:
@@ -229,63 +235,34 @@ def answer_source_inventory_question(question: str) -> dict | None:
     return None
 
 
-def get_ollama_tags_url() -> str:
-    parsed = urlparse(OLLAMA_BASE_URL)
-    base = f"{parsed.scheme}://{parsed.netloc}"
-    return f"{base}/api/tags"
-
-
-def get_ollama_status() -> dict:
+def get_api_status() -> dict:
     retrieval_backend = get_retrieval_backend()
-    try:
-        response = requests.get(get_ollama_tags_url(), timeout=5)
-        response.raise_for_status()
-    except requests.RequestException as exc:
+    if not LLM_API_KEY:
         return {
             "connected": False,
             "model_available": False,
-            "base_url": OLLAMA_BASE_URL,
-            "model": OLLAMA_MODEL,
+            "base_url": LLM_BASE_URL,
+            "model": LLM_MODEL,
             "retrieval_backend": retrieval_backend,
-            "detail": (
-                "Could not connect to Ollama. Start the Ollama app or server and make sure it"
-                f"is reachable at {OLLAMA_BASE_URL}."
-            ),
-            "error": str(exc),
+            "detail": "LLM_API_KEY is not set. Add it to your .env or Vercel environment variables.",
         }
-
-    payload = response.json()
-    models = payload.get("models", [])
-    available_names = {model.get("name") for model in models if model.get("name")}
     return {
         "connected": True,
-        "model_available": OLLAMA_MODEL in available_names,
-        "base_url": OLLAMA_BASE_URL,
-        "model": OLLAMA_MODEL,
+        "model_available": True,
+        "base_url": LLM_BASE_URL,
+        "model": LLM_MODEL,
         "retrieval_backend": retrieval_backend,
-        "available_models": sorted(available_names),
-        "detail": (
-            "Ollama is reachable."
-            if OLLAMA_MODEL in available_names
-            else f"Ollama is reachable, but model '{OLLAMA_MODEL}' is not pulled yet."
-        ),
+        "detail": "API is configured.",
     }
 
 
 def get_llm() -> ChatOpenAI:
-    status = get_ollama_status()
-    if not status["connected"]:
-        raise RuntimeError(status["detail"])
-    if not status["model_available"]:
-        raise RuntimeError(
-            f"Model '{OLLAMA_MODEL}' is not available in Ollama. Pull it first with "
-            f"'ollama pull {OLLAMA_MODEL}'."
-        )
-
+    if not LLM_API_KEY:
+        raise RuntimeError("LLM_API_KEY is not set. Add it to your .env or Vercel environment variables.")
     return ChatOpenAI(
-        model=OLLAMA_MODEL,
-        api_key=OLLAMA_API_KEY,
-        base_url=OLLAMA_BASE_URL,
+        model=LLM_MODEL,
+        api_key=LLM_API_KEY,
+        base_url=LLM_BASE_URL,
         temperature=0.2,
     )
 
@@ -302,6 +279,8 @@ def retrieve_documents(question: str, top_k: int = RETRIEVAL_TOP_K) -> List[Docu
         model_name = store.get("model_name", EMBEDDING_MODEL)
 
         try:
+            if not _SENTENCE_TRANSFORMERS_AVAILABLE:
+                raise ImportError("sentence-transformers not available")
             embedder = SentenceTransformer(model_name, local_files_only=True)
             query_vector = embedder.encode([question], convert_to_numpy=True)
             scores = cosine_similarity(query_vector, embeddings).flatten()
