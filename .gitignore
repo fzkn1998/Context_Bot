@@ -16,6 +16,7 @@ env/
 # Local app data
 data/*
 !data/.gitkeep
+users.db
 vectorstore/*
 !vectorstore/.gitkeep
 training_data.jsonl

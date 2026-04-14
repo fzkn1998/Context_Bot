@@ -56,6 +56,15 @@ const SUN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke=
 
 let busy = false;
 
+async function apiFetch(url, options = {}) {
+  const response = await fetch(url, options);
+  if (response.status === 401) {
+    window.location.href = "/auth";
+    throw new Error("Not authenticated");
+  }
+  return response;
+}
+
 const themeBtn = document.getElementById("themeBtn");
 const statusPill = document.getElementById("statusPill");
 const dropzone = document.getElementById("dropzone");
@@ -139,7 +148,7 @@ async function checkStatus() {
   text.textContent = "Checking...";
 
   try {
-    const response = await fetch("/status");
+    const response = await apiFetch("/status");
     const data = await response.json();
     const backendMap = {
       tfidf: "TF-IDF",
@@ -165,7 +174,7 @@ async function checkStatus() {
 }
 
 async function loadDocs() {
-  const response = await fetch("/documents");
+  const response = await apiFetch("/documents");
   const data = await response.json();
   const files = data.files || [];
   docCount.textContent = files.length;
@@ -186,7 +195,7 @@ async function loadDocs() {
 
 async function deleteDoc(name) {
   if (!confirm(`Remove "${name}"?`)) return;
-  const response = await fetch("/documents/" + encodeURIComponent(name), { method: "DELETE" });
+  const response = await apiFetch("/documents/" + encodeURIComponent(name), { method: "DELETE" });
   if (response.ok) {
     toast(name + " removed", "ok");
     loadDocs();
@@ -206,7 +215,7 @@ async function uploadFile(file) {
 
   try {
     bar.style.width = "65%";
-    const response = await fetch("/upload", { method: "POST", body: formData });
+    const response = await apiFetch("/upload", { method: "POST", body: formData });
     const data = await response.json();
     bar.style.width = "100%";
     if (response.ok) {
@@ -235,7 +244,7 @@ async function reindex() {
   indexStatus.className = "idx-status";
 
   try {
-    const response = await fetch("/reindex", { method: "POST" });
+    const response = await apiFetch("/reindex", { method: "POST" });
     const data = await response.json();
     if (response.ok) {
       indexStatus.textContent = `Indexed ${data.chunks} sections`;
@@ -273,7 +282,7 @@ async function sendMessage() {
   showTyping();
 
   try {
-    const response = await fetch("/chat", {
+    const response = await apiFetch("/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question })

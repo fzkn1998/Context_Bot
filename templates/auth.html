@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ContextDesk - Sign In</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    body {
+      height: 100vh;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+
+    .auth-theme-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      color: var(--text2);
+      cursor: pointer;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px;
+      padding: 36px 32px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .auth-logo-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .auth-logo-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      padding: 4px;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text2);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+
+    .auth-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .auth-form { display: none; flex-direction: column; gap: 14px; }
+    .auth-form.active { display: flex; }
+
+    .auth-field { display: flex; flex-direction: column; gap: 5px; }
+
+    .auth-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+
+    .auth-input {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .auth-input:focus { border-color: var(--accent); }
+
+    .auth-btn {
+      width: 100%;
+      padding: 10px;
+      border: 0;
+      border-radius: var(--r);
+      background: var(--accent);
+      color: var(--accent-fg);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background .15s;
+    }
+
+    .auth-btn:hover { background: var(--accent-h); }
+    .auth-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .auth-msg {
+      padding: 10px 13px;
+      border-radius: var(--r);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .auth-msg.ok {
+      background: var(--ok-lt);
+      color: var(--ok);
+      border: 1px solid var(--ok);
+    }
+
+    .auth-msg.err {
+      background: var(--err-lt);
+      color: var(--err);
+      border: 1px solid var(--err);
+    }
+
+    .auth-hint {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .auth-hint a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .auth-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <button class="auth-theme-btn" id="themeBtn" type="button" title="Toggle theme"></button>
+
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <span class="auth-logo-name">ContextDesk</span>
+    </div>
+
+    <div id="msgBox"></div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" type="button">Sign In</button>
+      <button class="auth-tab" id="tabSignup" type="button">Create Account</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form class="auth-form active" id="loginForm" method="POST" action="/auth/login">
+      <div class="auth-field">
+        <label class="auth-label" for="loginEmail">Email</label>
+        <input class="auth-input" id="loginEmail" name="email" type="email"
+               placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="loginPassword">Password</label>
+        <div class="pw-wrap">
+          <input class="auth-input" id="loginPassword" name="password" type="password"
+                 placeholder="••••••••" required autocomplete="current-password"
+                 style="width:100%;padding-right:38px;">
+          <button class="pw-toggle" type="button" data-target="loginPassword" title="Show/hide">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="auth-btn" type="submit">Sign In</button>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form class="auth-form" id="signupForm" method="POST" action="/auth/signup">
+      <div class="auth-field">
+        <label class="auth-label" for="signupName">Full Name</label>
+        <input class="auth-input" id="signupName" name="name" type="text"
+               placeholder="John Doe" required autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="signupEmail">Email</label>
+        <input class="auth-input" id="signupEmail" name="email" type="email"
+               placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="signupPassword">Password</label>
+        <div class="pw-wrap">
+          <input class="auth-input" id="signupPassword" name="password" type="password"
+                 placeholder="Min. 8 characters" required autocomplete="new-password"
+                 minlength="8" style="width:100%;padding-right:38px;">
+          <button class="pw-toggle" type="button" data-target="signupPassword" title="Show/hide">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="confirmPassword">Confirm Password</label>
+        <input class="auth-input" id="confirmPassword" name="confirm_password" type="password"
+               placeholder="••••••••" required autocomplete="new-password">
+      </div>
+      <button class="auth-btn" type="submit" id="signupBtn">Create Account</button>
+    </form>
+
+    <div class="auth-hint" id="switchHint">
+      Don't have an account? <a id="switchLink">Create one</a>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    const MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    const SUN  = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+
+    const themeBtn   = document.getElementById("themeBtn");
+    const tabLogin   = document.getElementById("tabLogin");
+    const tabSignup  = document.getElementById("tabSignup");
+    const loginForm  = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const switchHint = document.getElementById("switchHint");
+    const switchLink = document.getElementById("switchLink");
+    const msgBox     = document.getElementById("msgBox");
+
+    function applyTheme(t) {
+      document.body.dataset.theme = t;
+      localStorage.setItem("cd-theme", t);
+      themeBtn.innerHTML = t === "dark" ? SUN : MOON;
+    }
+
+    themeBtn.addEventListener("click", () => {
+      applyTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+    });
+
+    let activeTab = "login";
+
+    function showTab(tab) {
+      activeTab = tab;
+      if (tab === "login") {
+        tabLogin.classList.add("active");
+        tabSignup.classList.remove("active");
+        loginForm.classList.add("active");
+        signupForm.classList.remove("active");
+        switchHint.innerHTML = 'Don\'t have an account? <a id="switchLink">Create one</a>';
+      } else {
+        tabSignup.classList.add("active");
+        tabLogin.classList.remove("active");
+        signupForm.classList.add("active");
+        loginForm.classList.remove("active");
+        switchHint.innerHTML = 'Already have an account? <a id="switchLink">Sign in</a>';
+      }
+      document.getElementById("switchLink").addEventListener("click", () => {
+        showTab(tab === "login" ? "signup" : "login");
+      });
+      msgBox.innerHTML = "";
+    }
+
+    tabLogin.addEventListener("click",  () => showTab("login"));
+    tabSignup.addEventListener("click", () => showTab("signup"));
+    switchLink.addEventListener("click", () => showTab(activeTab === "login" ? "signup" : "login"));
+
+    // Password toggle
+    document.addEventListener("click", e => {
+      const btn = e.target.closest(".pw-toggle");
+      if (!btn) return;
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      input.type = input.type === "password" ? "text" : "password";
+    });
+
+    // Confirm password validation
+    document.getElementById("signupForm").addEventListener("submit", e => {
+      const pw  = document.getElementById("signupPassword").value;
+      const cpw = document.getElementById("confirmPassword").value;
+      if (pw !== cpw) {
+        e.preventDefault();
+        showMsg("Passwords do not match.", "err");
+      }
+    });
+
+    // Show message from URL params
+    function showMsg(text, type) {
+      msgBox.innerHTML = `<div class="auth-msg ${type}">${text}</div>`;
+    }
+
+    function readParams() {
+      const p = new URLSearchParams(window.location.search);
+      const tab = p.get("tab");
+      const msg = p.get("msg");
+      const err = p.get("error");
+
+      if (tab === "signup") showTab("signup");
+
+      if (msg === "email_sent") {
+        showMsg("Account created! Please check your email to verify your address before signing in.", "ok");
+      } else if (msg === "verified") {
+        showMsg("Email verified successfully. You can now sign in.", "ok");
+      } else if (msg === "logged_out") {
+        showMsg("You have been signed out.", "ok");
+      }
+
+      if (err === "invalid_credentials") {
+        showMsg("Incorrect email or password.", "err");
+      } else if (err === "not_verified") {
+        showMsg("Please verify your email before signing in. Check your inbox.", "err");
+      } else if (err === "email_exists") {
+        showTab("signup");
+        showMsg("An account with this email already exists.", "err");
+      } else if (err === "token_expired") {
+        showMsg("Verification link has expired. Please sign up again.", "err");
+      } else if (err === "token_invalid") {
+        showMsg("Invalid verification link.", "err");
+      } else if (err === "email_failed") {
+        showMsg("Account created but verification email could not be sent. Please contact support.", "err");
+      }
+    }
+
+    applyTheme(localStorage.getItem("cd-theme") || "light");
+    readParams();
+  </script>
+</body>
+</html>
