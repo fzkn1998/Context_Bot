@@ -9,4 +9,6 @@ pypdf==5.4.0
 docx2txt==0.8
 python-dotenv==1.1.0
 openai==1.76.0
-scikit-learn==1.8.0
+scikit-learn==1.7.2
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
