@@ -148,7 +148,7 @@ def signup(
     db = get_db()
     try:
         existing = db.execute(
-            "SELECT id FROM users WHERE email = ?", (email,)
+            "SELECT id FROM users WHERE email = %s", (email,)
         ).fetchone()
         if existing:
             return RedirectResponse(
@@ -158,7 +158,7 @@ def signup(
 
         pw_hash = hash_password(password)
         db.execute(
-            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            "INSERT INTO users (name, email, password_hash) VALUES (%s, %s, %s)",
             (name, email, pw_hash),
         )
         db.commit()
@@ -194,7 +194,7 @@ def login(
     db = get_db()
     try:
         user = db.execute(
-            "SELECT id, name, password_hash, is_verified FROM users WHERE email = ?",
+            "SELECT id, name, password_hash, is_verified FROM users WHERE email = %s",
             (email,),
         ).fetchone()
     finally:
@@ -237,7 +237,7 @@ def verify_email(token: str):
     db = get_db()
     try:
         user = db.execute(
-            "SELECT id, is_verified FROM users WHERE email = ?", (email,)
+            "SELECT id, is_verified FROM users WHERE email = %s", (email,)
         ).fetchone()
         if not user:
             return RedirectResponse(
@@ -246,7 +246,7 @@ def verify_email(token: str):
             )
         if not user["is_verified"]:
             db.execute(
-                "UPDATE users SET is_verified = 1 WHERE email = ?", (email,)
+                "UPDATE users SET is_verified = TRUE WHERE email = %s", (email,)
             )
             db.commit()
     finally:

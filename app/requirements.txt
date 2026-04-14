@@ -12,3 +12,4 @@ openai==1.76.0
 scikit-learn==1.7.2
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
+psycopg[binary]==3.2.9
